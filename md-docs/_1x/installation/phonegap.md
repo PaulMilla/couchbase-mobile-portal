@@ -34,6 +34,8 @@ permalink: installation/phonegap/index.html
 
 ## Getting Started
 
+### Creating a new project
+
 Create a new PhoneGap project using the PhoneGap CLI. Then, install the Couchbase Lite plugin.
 
 ```bash
@@ -52,10 +54,12 @@ phonegap platform add ios
 
 > Note: On iOS, you must have the **ios-sim** module installed globally to start the emulator from the command line `npm install -g ios-sim && phonegap run ios`.
 
+### Adding Couchbase Lite
+
 The Couchbase Lite Listener exposes the same functionality as the native SDKs through a common RESTful API. You can perform the same operations on the database by sending HTTP requests to it. In this example, you'll use the Swagger JS client with the Couchbase Lite REST API spec to perform various operations.
 
 - [Download the Swagger JS client](http://couchbase-docs.s3.amazonaws.com/assets/swagger-js/2.x/swagger-client.min.js) to a new file under **www/js/swagger-client.min.js**.
-- [Download the Couchbase Lite REST API spec]({{ site.swagger_url }}) to a new file **www/js/spec.js**. Your IDE might show an error because you've copied a JSON object into a JavaScript file but don't worry, prepend the content with the following to set the spec on the `window` object as you will need a reference to it later to initialize the Swagger client.
+- [Download the Couchbase Lite REST API spec]({{ site.swagger_url }}) to a new file **www/js/couchbase-lite.js**. Your IDE might show an error because you've copied a JSON object into a JavaScript file but don't worry, prepend the content with the following to set the spec on the `window` object as you will need a reference to it later to initialize the Swagger client.
 
 	```javascript
 	window.spec = {
@@ -73,7 +77,7 @@ Reference the 3 files you created above in **www/index.html** before `app.initia
 
 ```html
 <script type="text/javascript" src="js/swagger-client.min.js"></script>
-<script type="text/javascript" src="js/spec.js"></script>
+<script type="text/javascript" src="js/couchbase-lite.js"></script>
 <script type="text/javascript" src="js/data-manager.js"></script>
 <script type="text/javascript">
     app.initialize();
@@ -118,9 +122,11 @@ function initRESTClient(url) {
 }
 ```
 
-> Tip: To find out what the available methods are, use the `help()` method to print the list of parameters for each endpoint (for example, `client.help()`, `client.database.help()` etc.)
+This code initializes the REST API client with the url passed as a parameter. The promise chaining then creates the database and inserts a document. To find out what the available methods are, use the `help()` method to print the list of parameters for each endpoint (for example, `client.help()`, `client.database.help()` etc.)
 
-This code initializes the REST API client with the url passed as a parameter. The promise chaining then creates the database and inserts a document. To call this method, open **www/js/index.js** and append the following in the `onDeviceReady` method.
+In the next section, you will write some code to detect if the app is running on a desktop browser (i.e during development) or on the device/emulator.
+
+To call this method, open **www/js/index.js** and append the following in the `onDeviceReady` method.
 
 ```javascript
 if (window.cblite) {
@@ -137,11 +143,31 @@ if (window.cblite) {
 }
 ```
 
-Build and run for Android. Open [chrome://inspect](chrome://inspect) in Chrome and select the Android device where the app is running. Notice the document ID and property are printed to the console. The document was successfully persisted to the database.
+### Development environment
+
+Since the application is interfacing with the database through a REST API, it can run in a desktop browser and make HTTP requests to the database from there. This makes the development environment a lot simpler as you won't need to deploy the application to the device/emulator every time a change is made.
+
+Run the following command to serve the application in the browser.
+
+```bash
+phonegap serve --browser
+```
+
+Install the LiteServ application.
+
+```bash
+adb forward tcp:5984 tcp:5984
+```
+
+### Deploying
+
+Build and run for Android.
 
 ```bash
 phonegap run android
 ```
+
+Open [chrome://inspect](chrome://inspect) in Chrome and select the Android device where the app is running. Notice the document ID and property are printed to the console. The document was successfully persisted to the database.
 
 ![](../img/phonegap-console-android.png)
 
