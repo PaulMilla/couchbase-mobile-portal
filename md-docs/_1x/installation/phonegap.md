@@ -15,22 +15,23 @@ permalink: installation/phonegap/index.html
 	phonegap local plugin add https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git
 	```
 	
-3. Build and run the application. You can now access the Couchbase Listener URL in the `onDeviceReady` callback.
+3. You can access the Couchbase Lite Listener URL in the `receivedEvent` lifecycle method with the following.
 
 	```javascript
-	app.receivedEvent('deviceready');
 	if (window.cblite) {
 		window.cblite.getURL(function (err, url) {
 			if (err) {
-				app.logMessage("error launching Couchbase Lite: " + err)
+				console.log("error launching Couchbase Lite: " + err)
 			} else {
-				app.logMessage("Couchbase Lite running at " + url);
+				console.log("Couchbase Lite running at " + url);
 			}
 		});
 	} else {
-		app.logMessage("error, Couchbase Lite plugin not found.")
+		console.log("error, Couchbase Lite plugin not found.");
 	}
 	```
+
+4. Build and run.
 
 ## Getting Started
 
@@ -129,7 +130,9 @@ In the next section, you will write some code to detect if the app is running on
 To call this method, open **www/js/index.js** and append the following in the `onDeviceReady` method.
 
 ```javascript
-if (window.cblite) {
+if (window.cblite && window.cordova.platformId == 'browser') { // desktop browser, development only.
+	initRESTClient('localhost:59840');
+} else if (window.cblite) {
 	window.cblite.getURL(function (err, url) {
 		if (err) {
 			console.log("error launching Couchbase Lite: " + err)
@@ -139,25 +142,32 @@ if (window.cblite) {
 		}
 	});
 } else {
-	console.log("error, Couchbase Lite plugin not found.")
+	console.log("error, Couchbase Lite plugin not found.");
 }
 ```
 
+The code above initializes the application by calling the `initRESTClient` with the URL to access the Couchbase Lite Listener.
+
 ### Development environment
 
-Since the application is interfacing with the database through a REST API, it can run in a desktop browser and make HTTP requests to the database from there. This makes the development environment a lot simpler as you won't need to deploy the application to the device/emulator every time a change is made.
+While the application will usually run on a device, it is useful to know how to run it in a desktop browser. This is useful during development because you won't have to re-deploy the application to a device or emulator on every change.
 
-Run the following command to serve the application in the browser.
+Download [LiteServ for macOS](https://cl.ly/1d1k261T3d2s/LiteServ.zip), unzip the folder and start it from the command line with the CORS flag.
+
+```bash
+cd LiteServ
+./LiteServ.app/Contents/Tools/LiteServ --cors
+```
+
+Run the following command to serve the PhoneGap application from a static web server.
 
 ```bash
 phonegap serve --browser
 ```
 
-Install the LiteServ application.
+Open [localhost:3000](http://localhost:3000/) in a web browser and notice that the document is successfully persisted to the database.
 
-```bash
-adb forward tcp:5984 tcp:5984
-```
+![](../img/web-browser.png)
 
 ### Deploying
 
